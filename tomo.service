@@ -1,0 +1,10 @@
+[Unit]
+Description=Virtual Pet tomo
+After=multi-user.target
+
+[Service]
+type=idle
+ExecStart=/usr/bin/python3 /opt/tomo/tomo.py
+
+[Install]
+WantedBy=multi-user.target

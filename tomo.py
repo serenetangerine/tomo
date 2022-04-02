@@ -9,8 +9,8 @@ from PIL import ImageFont
 
 #import subprocess
 
+import os
 import random
-
 from time import sleep
 
 ## initialize screen
@@ -30,8 +30,10 @@ image = Image.new('1', (width, height))
 draw = ImageDraw.Draw(image)
 draw.rectangle((0,0, width, height), outline=0, fill=0)
 
-tomo_left = Image.open('sprites/tomo_left.bmp').convert('1')
-tomo_right = Image.open('sprites/tomo_right.bmp').convert('1')
+directory = os.path.dirname(__file__)
+
+tomo_left = Image.open('%s/sprites/tomo_left.bmp' % directory).convert('1')
+tomo_right = Image.open('%s/sprites/tomo_right.bmp' % directory).convert('1')
 
 (x, y) = (50, 34)
 
