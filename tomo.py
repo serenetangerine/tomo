@@ -8,6 +8,7 @@ from PIL import ImageDraw
 from PIL import ImageFont
 
 import argparse
+from datetime import datetime
 import os
 import random
 import subprocess
@@ -74,6 +75,11 @@ while True:
     if args.temp:
         temp_string = temp + ' C'
         draw.text((0, 7), temp_string, font=font, fill=255)
+
+    # time
+    if args.time:
+        time = datetime.now().strftime('%H:%M')
+        draw.text((90, 7), time, font=font, fill=255)
 
     dir = random.randint(0, 6)
     if dir == 0:
