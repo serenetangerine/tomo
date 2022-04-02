@@ -7,10 +7,9 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 
-#import subprocess
-
 import os
 import random
+import subprocess
 from time import sleep
 
 ## initialize screen
@@ -30,14 +29,26 @@ image = Image.new('1', (width, height))
 draw = ImageDraw.Draw(image)
 draw.rectangle((0,0, width, height), outline=0, fill=0)
 
-directory = os.path.dirname(__file__)
+fontsize = 13
+font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuS/DejaVuSans.ttf', fontsize)
 
+directory = os.path.dirname(__file__)
 tomo_left = Image.open('%s/sprites/tomo_left.bmp' % directory).convert('1')
 tomo_right = Image.open('%s/sprites/tomo_right.bmp' % directory).convert('1')
 
 (x, y) = (50, 34)
 
 while True:
+    draw.rectangle((0,0, width, height), outline=0, fill=0)
+    
+    # cpu temp
+    command = '/opt/vc/bin/vcgencmd measure_temp'
+    temp = subprocess.check_output(command, shell=True)
+    temp = temp.decode()
+    temp = temp[:9]
+    temp = temp[5:]
+    draw.text((0, 7), temp, font=font, fill=255)
+
     dir = random.randint(0, 6)
     if dir == 0:
         pass
