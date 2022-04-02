@@ -38,15 +38,22 @@ tomo_right = Image.open('%s/sprites/tomo_right.bmp' % directory).convert('1')
 
 (x, y) = (50, 34)
 
-while True:
-    draw.rectangle((0,0, width, height), outline=0, fill=0)
-    
-    # cpu temp
+
+def cpuTemp():
     command = '/opt/vc/bin/vcgencmd measure_temp'
     temp = subprocess.check_output(command, shell=True)
     temp = temp.decode()
     temp = temp[:9]
     temp = temp[5:]
+    temp = temp + ' C'
+    return temp
+
+
+while True:
+    draw.rectangle((0,0, width, height), outline=0, fill=0)
+    
+    # cpu temp
+    temp = cpuTemp()
     draw.text((0, 7), temp, font=font, fill=255)
 
     dir = random.randint(0, 6)
