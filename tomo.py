@@ -7,10 +7,34 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 
+import argparse
 import os
 import random
 import subprocess
 from time import sleep
+
+
+def getArguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--temp', '-T', help='flag to display temperature', action='store_true')
+    parser.add_argument('--time', '-t', help='flag to display time', action='store_true')
+
+    args = parser.parse_args()
+    return args
+
+
+def cpuTemp():
+    command = '/opt/vc/bin/vcgencmd measure_temp'
+    temp = subprocess.check_output(command, shell=True)
+    temp = temp.decode()
+    temp = temp[:9]
+    temp = temp[5:]
+    temp = temp + ' C'
+    return temp
+
+
+## get arguments
+args = getArguments()
 
 ## initialize screen
 RST = None
@@ -38,23 +62,13 @@ tomo_right = Image.open('%s/sprites/tomo_right.bmp' % directory).convert('1')
 
 (x, y) = (50, 34)
 
-
-def cpuTemp():
-    command = '/opt/vc/bin/vcgencmd measure_temp'
-    temp = subprocess.check_output(command, shell=True)
-    temp = temp.decode()
-    temp = temp[:9]
-    temp = temp[5:]
-    temp = temp + ' C'
-    return temp
-
-
 while True:
     draw.rectangle((0,0, width, height), outline=0, fill=0)
     
     # cpu temp
-    temp = cpuTemp()
-    draw.text((0, 7), temp, font=font, fill=255)
+    if args.temp:
+        temp = cpuTemp()
+        draw.text((0, 7), temp, font=font, fill=255)
 
     dir = random.randint(0, 6)
     if dir == 0:
