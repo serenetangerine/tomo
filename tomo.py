@@ -29,7 +29,6 @@ def cpuTemp():
     temp = temp.decode()
     temp = temp[:9]
     temp = temp[5:]
-    temp = temp + ' C'
     return temp
 
 
@@ -56,29 +55,41 @@ draw.rectangle((0,0, width, height), outline=0, fill=0)
 fontsize = 13
 font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuS/DejaVuSans.ttf', fontsize)
 
+## load images
 directory = os.path.dirname(__file__)
 tomo_left = Image.open('%s/sprites/tomo_left.bmp' % directory).convert('1')
 tomo_right = Image.open('%s/sprites/tomo_right.bmp' % directory).convert('1')
+tomo_left_sweat = Image.open('%s/sprites/tomo_left_sweat.bmp' % directory).convert('1')
+tomo_right_sweat = Image.open('%s/sprites/tomo_right_sweat.bmp' % directory).convert('1')
 
+## set initial position
 (x, y) = (50, 34)
 
+## start walk
 while True:
     draw.rectangle((0,0, width, height), outline=0, fill=0)
     
     # cpu temp
+    temp = cpuTemp()
     if args.temp:
-        temp = cpuTemp()
-        draw.text((0, 7), temp, font=font, fill=255)
+        temp_string = temp + ' C'
+        draw.text((0, 7), temp_string, font=font, fill=255)
 
     dir = random.randint(0, 6)
     if dir == 0:
         pass
     elif dir % 2 == 1:
-        tomo = tomo_left
+        if float(temp) > 50.0:
+            tomo = tomo_left_sweat
+        else:
+            tomo = tomo_left
         if x > 0:
             x = x - 2
     elif dir % 2 == 0:
-        tomo = tomo_right
+        if float(temp) > 50.0:
+            tomo = tomo_right_sweat
+        else:
+            tomo = tomo_right
         if x < 100:
             x = x + 2
     
