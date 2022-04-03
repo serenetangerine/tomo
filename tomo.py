@@ -27,10 +27,10 @@ def getArguments():
 
 def render(object):
     draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
-    # cpu temp
     if tomo.message:
         draw.text((0, 7), tomo.message, font=font, fill=255)
     else:
+        # cpu temp
         if args.temp:
             draw.text((0, 7), tomo.temp, font=font, fill=255)
         
@@ -75,7 +75,7 @@ class Tomo:
         self.hot = False
         self.dancing = False
         self.sick = False
-        self.hunger = 200
+        self.hunger = 100
         self.food_consumed = 0
         self.deaths = 0
         self.temp = ''
@@ -95,11 +95,22 @@ class Tomo:
             self.die()
 
         # more likely to not move if sick
-        if self.sick:
-            dir = random.randint(0,2)
+        # bee lines to food when starving
+        if self.hunger > 10:
+            if self.sick:
+                dir = random.randint(0, 2)
+            else:
+                dir = random.randint(0, 6)
+        elif food.spawned:
+            if food.x > self.x:
+                dir = 1
+            else:
+                dir = 2
+            if self.sick and random.randint(0,1) == 0:
+                dir = 0
         else:
-            dir = random.randint(0, 6)
-        
+            dir = 0
+            
         # do nothing if 0
         if dir == 0:
             pass
@@ -112,7 +123,7 @@ class Tomo:
             if self.x < 98:
                 self.x = self.x + 2
         
-        if self.hunger < 50:
+        if self.hunger < 20:
             self.sprite = self.tomo_excite
         elif self.sick:
             self.sprite = self.tomo_sick
@@ -180,6 +191,7 @@ class Tomo:
     def die(self):
         self.deaths = self.deaths + 1
         self.sprite = self.tomo_rip
+        food.spawned = False
 
         self.message = 'times died: %s' % str(self.deaths)
 
@@ -193,6 +205,7 @@ class Tomo:
 
     def respawn(self):
         self.hunger = 200
+        self.food_consumed = 0
         main()
 
 
@@ -295,7 +308,6 @@ font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuS/DejaVuSans.t
 
 tomo = Tomo()
 food = Food()
-
 def main():
     ## animate egg hatching
     if not args.skip:
@@ -310,7 +322,7 @@ def main():
 
         # spawn food
         if not food.spawned:
-            if random.randint(0, 20) == 0:
+            if random.randint(0, 50) == 0:
                 food.spawn(tomo.x)
     
         # start walk
