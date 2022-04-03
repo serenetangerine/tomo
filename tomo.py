@@ -50,6 +50,10 @@ def checkSpotify(tomo):
     return int(output)
 
 
+def render(sprite):
+    pass
+
+
 class Tomo:
     def __init__(self):
         # load sprites
@@ -172,9 +176,12 @@ class Tomo:
                 self.sick = True
      
     def die(self):
+        self.deaths = self.deaths + 1
         self.tomo_sprite = self.tomo_rip
+
         draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
         draw.text((0, 7), 'tomo died :(', font=font, fill=255)
+
         image.paste(self.tomo_sprite, (50, 34))
         disp.image(image)
         disp.display()
@@ -194,28 +201,37 @@ class Egg:
         self.egg3 = Image.open('%s/sprites/egg/egg3.bmp' % directory).convert('1')
 
         # default sprite
-        self.egg_sprite = self.egg1
+        self.sprite = self.egg1
 
         # initial coordinates
         (self.x, self.y) = (50, 34)
 
         self.count = 0
 
-    def idle(self):
-        if self.count % 2 == 0:
-            self.egg_sprite = self.egg1
-        else:
-            self.egg_sprite = self.egg2
-
-        self.count = self.count + 1
-
     def hatch(self):
-        if self.count % 2 == 0:
-            self.egg_sprite = self.egg1
-        else:
-            self.egg_sprite = self.egg3
+        while self.count <= 15:
+            if self.count % 2 == 0:
+                self.sprite = self.egg1
+            else:
+                self.sprite = self.egg2
+            image.paste(self.sprite, (self.x, self.y))
+            disp.image(image)
+            disp.display()
 
-        self.count = self.count + 1
+            self.count = self.count + 1
+            sleep(0.5)
+        
+        while self.count <= 21:
+            if self.count % 2 == 0:
+                self.sprite = self.egg1
+            else:
+                self.sprite = self.egg3
+            image.paste(self.sprite, (self.x, self.y))
+            disp.image(image)
+            disp.display()
+
+            self.count = self.count + 1
+            sleep(0.5)
 
 
 class Food:
@@ -279,10 +295,14 @@ draw = ImageDraw.Draw(image)
 fontsize = 13
 font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuS/DejaVuSans.ttf', fontsize)
 
+tomo = Tomo()
+food = Food()
+
 def main():
     ## animate egg hatching
     if not args.skip:
         egg = Egg()
+        egg.hatch()
         while egg.count <= 15:
             egg.idle()
             image.paste(egg.egg_sprite, (egg.x, egg.y))
@@ -296,14 +316,8 @@ def main():
             disp.image(image)
             disp.display()
             sleep(0.5)
-    
-    
-    ## tomo is born!
-    tomo = Tomo()
-    
-    ## create food object
-    food = Food()
-    
+   
+
     ## start loop
     try:
         while True:
