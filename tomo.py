@@ -19,6 +19,7 @@ def getArguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--temp', '-T', help='flag to display temperature', action='store_true')
     parser.add_argument('--time', '-t', help='flag to display time', action='store_true')
+    parser.add_argument('--skip', '-s', help='flag to skip egg hatch into', action='store_true')
 
     args = parser.parse_args()
     return args
@@ -39,14 +40,19 @@ class Tomo:
         directory = os.path.dirname(__file__)
         self.tomo_left = Image.open('%s/sprites/tomo/tomo.bmp' % directory).convert('1')
         self.tomo_right = self.tomo_left.transpose(Image.FLIP_LEFT_RIGHT)
-        self.tomo_left_sweat = Image.open('%s/sprites/tomo/tomo_sweat.bmp' % directory).convert('1')
-        self.tomo_right_sweat = self.tomo_left_sweat.transpose(Image.FLIP_LEFT_RIGHT)
+        self.tomo_sweat_left = Image.open('%s/sprites/tomo/tomo_sweat.bmp' % directory).convert('1')
+        self.tomo_sweat_right = self.tomo_sweat_left.transpose(Image.FLIP_LEFT_RIGHT)
+        self.tomo_excite_left = Image.open('%s/sprites/tomo/tomo_excite.bmp' % directory).convert('1')
+        self.tomo_excite_right = self.tomo_excite_left.transpose(Image.FLIP_LEFT_RIGHT)
 
         # default sprite
         self.tomo_sprite = self.tomo_left
 
         # initial coordinates
         (self.x, self.y) = (50, 34)
+
+        # set direction
+        self.direction = 'left' 
 
     def walk(self, temp):
         dir = random.randint(0, 6)
@@ -55,16 +61,18 @@ class Tomo:
             pass
         # walk left if odd
         elif dir % 2 == 1:
+            self.direction = 'left'
             if float(temp) > 50.0:
-                self.tomo_sprite = self.tomo_left_sweat
+                self.tomo_sprite = self.tomo_sweat_left
             else:
                 self.tomo_sprite = self.tomo_left
             if self.x > 0:
                 self.x = self.x - 2
         # walk right if even
         elif dir % 2 == 0:
+            self.direction = 'right'
             if float(temp) > 50.0:
-                self.tomo_sprite = self.tomo_right_sweat
+                self.tomo_sprite = self.tomo_sweat_right
             else:
                 self.tomo_sprite = self.tomo_right
             if self.x < 100:
@@ -74,6 +82,18 @@ class Tomo:
             self.y = 32
         else:
             self.y = 34
+
+    def eat(self, count):
+        if count % 2 == 0:
+            if self.direction == 'left':
+                self.tomo_sprite = self.tomo_excite_left
+            else:
+                self.tomo_sprite = self.tomo_excite_right
+        else:
+            if self.direction == 'left':
+                self.tomo_sprite = self.tomo_left
+            else:
+                self.tomo_sprite = self.tomo_right
 
 
 class Egg:
@@ -101,13 +121,38 @@ class Egg:
         self.count = self.count + 1
 
     def hatch(self):
-        if self.count %2 == 0:
+        if self.count % 2 == 0:
             self.egg_sprite = self.egg1
         else:
             self.egg_sprite = self.egg3
 
         self.count = self.count + 1
 
+
+class Food:
+    def __init__(self):
+        # load sprites
+        directory = os.path.dirname(__file__)
+        self.peach = Image.open('%s/sprites/food/peach.bmp' % directory).convert('1')
+
+        # default sprite
+        self.food_sprite = self.peach
+
+        # initial coordinates
+        (self.x, self.y) = (50, 33)
+
+        self.spawned = False
+    
+    def spawn(self, x):
+        pos = random.randint(0, 100)
+        if pos not in range(x, x + 32) and pos + 32 not in range(x, x + 32):
+            self.x = pos
+            self.spawned = True
+        else:
+            self.spawn(x)
+
+    def eat(self):
+        self.spawned = False
 
 
 ## get arguments
@@ -134,24 +179,28 @@ font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuS/DejaVuSans.t
 
 
 ## animate egg hatching
-egg = Egg()
-while egg.count <= 15:
-    egg.idle()
-    image.paste(egg.egg_sprite, (egg.x, egg.y))
-    disp.image(image)
-    disp.display()
-    sleep(0.5)
-
-while egg.count <= 21:
-    egg.hatch()
-    image.paste(egg.egg_sprite, (egg.x, egg.y))
-    disp.image(image)
-    disp.display()
-    sleep(0.5)
+if not args.skip:
+    egg = Egg()
+    while egg.count <= 15:
+        egg.idle()
+        image.paste(egg.egg_sprite, (egg.x, egg.y))
+        disp.image(image)
+        disp.display()
+        sleep(0.5)
+    
+    while egg.count <= 21:
+        egg.hatch()
+        image.paste(egg.egg_sprite, (egg.x, egg.y))
+        disp.image(image)
+        disp.display()
+        sleep(0.5)
 
 
 ## tomo is born!
 tomo = Tomo()
+
+## create food object
+food = Food()
 
 ## start loop
 while True:
@@ -168,10 +217,34 @@ while True:
         time = datetime.now().strftime('%H:%M')
         draw.text((90, 7), time, font=font, fill=255)
 
+# spawn food
+    if not food.spawned:
+        if random.randint(0, 10) == 0:
+            food.spawn(tomo.x)
+
     # start walk
     tomo.walk(temp)
-    
+    if food.spawned:
+        if tomo.x in range(food.x, food.x + 38) or tomo.x + 38 in range(food.x, food.x + 32):
+            if tomo.x < food.x:
+                tomo.direction = 'right'
+            else:
+                tomo.direction = 'left'
 
+            for count in range(0, 6):
+                draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
+                tomo.eat(count)
+
+                image.paste(food.food_sprite, (food.x, food.y))
+                image.paste(tomo.tomo_sprite, (tomo.x, tomo.y))
+                disp.image(image)
+                disp.display()
+                sleep(0.5)
+            food.eat()
+
+
+    if food.spawned:
+        image.paste(food.food_sprite, (food.x, food.y))
     image.paste(tomo.tomo_sprite, (tomo.x, tomo.y))
     disp.image(image)
     disp.display()
