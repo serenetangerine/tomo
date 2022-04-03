@@ -65,6 +65,8 @@ class Tomo:
         self.tomo_dance_left = Image.open('%s/sprites/tomo/tomo_dance.bmp' % directory).convert('1')
         self.tomo_dance_right = self.tomo_dance_left.transpose(Image.FLIP_LEFT_RIGHT)
 
+        self.tomo_rip = Image.open('%s/sprites/tomo/tomo_rip.bmp' % directory).convert('1')
+
         # default sprite
         self.tomo_sprite = self.tomo_left
 
@@ -123,7 +125,9 @@ class Tomo:
                 self.tomo_sprite = self.tomo_eat_left
             else:
                 self.tomo_sprite = self.tomo_eat_right
-
+     
+    def die(self):
+        self.tomo_sprite = self.tomo_rip
 
 class Egg:
     def __init__(self):
@@ -297,7 +301,9 @@ try:
         disp.display()
         sleep(0.5)
 except KeyboardInterrupt:
+    tomo.die()
     draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
     draw.text((0, 7), 'tomo terminated :(', font=font, fill=255)
+    image.paste(tomo.tomo_sprite, (50, 34))
     disp.image(image)
     disp.display()
