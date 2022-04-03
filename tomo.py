@@ -223,87 +223,91 @@ draw = ImageDraw.Draw(image)
 fontsize = 13
 font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuS/DejaVuSans.ttf', fontsize)
 
-
-## animate egg hatching
-if not args.skip:
-    egg = Egg()
-    while egg.count <= 15:
-        egg.idle()
-        image.paste(egg.egg_sprite, (egg.x, egg.y))
-        disp.image(image)
-        disp.display()
-        sleep(0.5)
+def main():
+    ## animate egg hatching
+    if not args.skip:
+        egg = Egg()
+        while egg.count <= 15:
+            egg.idle()
+            image.paste(egg.egg_sprite, (egg.x, egg.y))
+            disp.image(image)
+            disp.display()
+            sleep(0.5)
+        
+        while egg.count <= 21:
+            egg.hatch()
+            image.paste(egg.egg_sprite, (egg.x, egg.y))
+            disp.image(image)
+            disp.display()
+            sleep(0.5)
     
-    while egg.count <= 21:
-        egg.hatch()
-        image.paste(egg.egg_sprite, (egg.x, egg.y))
-        disp.image(image)
-        disp.display()
-        sleep(0.5)
-
-
-## tomo is born!
-tomo = Tomo()
-
-## create food object
-food = Food()
-
-## start loop
-try:
-    while True:
+    
+    ## tomo is born!
+    tomo = Tomo()
+    
+    ## create food object
+    food = Food()
+    
+    ## start loop
+    try:
+        while True:
+            draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
+           
+            # cpu temp
+            temp = cpuTemp(tomo)
+            if args.temp:
+                draw.text((0, 7), temp, font=font, fill=255)
+        
+            # time
+            if args.time:
+                time = datetime.now().strftime('%H:%M')
+                draw.text((90, 7), time, font=font, fill=255)
+        
+            # spotify
+            checkSpotify(tomo)
+        
+        # spawn food
+            if not food.spawned:
+                if random.randint(0, 20) == 0:
+                    food.spawn(tomo.x)
+        
+            # start walk
+            tomo.walk(temp)
+            if food.spawned:
+                if tomo.x in range(food.x, food.x + 36) or tomo.x + 36 in range(food.x, food.x + 32):
+                    tomo.food_consumed = tomo.food_consumed + 1
+                    if tomo.x < food.x:
+                        tomo.direction = 'right'
+                    else:
+                        tomo.direction = 'left'
+        
+                    for count in range(0, 6):
+                        draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
+                        draw.text((0, 7), 'food eaten: %s' % str(tomo.food_consumed), font=font, fill=255)
+                        tomo.eat(count)
+        
+                        image.paste(food.food_sprite, (food.x, food.y))
+                        image.paste(tomo.tomo_sprite, (tomo.x, tomo.y))
+                        disp.image(image)
+                        disp.display()
+                        sleep(0.5)
+                    food.eat()
+        
+        
+            if food.spawned:
+                image.paste(food.food_sprite, (food.x, food.y))
+            image.paste(tomo.tomo_sprite, (tomo.x, tomo.y))
+            disp.image(image)
+            disp.display()
+            sleep(0.5)
+    except KeyboardInterrupt:
+        tomo.die()
         draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
-       
-        # cpu temp
-        temp = cpuTemp(tomo)
-        if args.temp:
-            draw.text((0, 7), temp, font=font, fill=255)
-    
-        # time
-        if args.time:
-            time = datetime.now().strftime('%H:%M')
-            draw.text((90, 7), time, font=font, fill=255)
-    
-        # spotify
-        checkSpotify(tomo)
-    
-    # spawn food
-        if not food.spawned:
-            if random.randint(0, 20) == 0:
-                food.spawn(tomo.x)
-    
-        # start walk
-        tomo.walk(temp)
-        if food.spawned:
-            if tomo.x in range(food.x, food.x + 36) or tomo.x + 36 in range(food.x, food.x + 32):
-                tomo.food_consumed = tomo.food_consumed + 1
-                if tomo.x < food.x:
-                    tomo.direction = 'right'
-                else:
-                    tomo.direction = 'left'
-    
-                for count in range(0, 6):
-                    draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
-                    draw.text((0, 7), 'food eaten: %s' % str(tomo.food_consumed), font=font, fill=255)
-                    tomo.eat(count)
-    
-                    image.paste(food.food_sprite, (food.x, food.y))
-                    image.paste(tomo.tomo_sprite, (tomo.x, tomo.y))
-                    disp.image(image)
-                    disp.display()
-                    sleep(0.5)
-                food.eat()
-    
-    
-        if food.spawned:
-            image.paste(food.food_sprite, (food.x, food.y))
-        image.paste(tomo.tomo_sprite, (tomo.x, tomo.y))
+        draw.text((0, 7), 'tomo terminated :(', font=font, fill=255)
+        image.paste(tomo.tomo_sprite, (50, 34))
         disp.image(image)
         disp.display()
-        sleep(0.5)
-except KeyboardInterrupt:
-    tomo.die()
-    draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
-    draw.text((0, 7), 'tomo terminated :(', font=font, fill=255)
-    image.paste(tomo.tomo_sprite, (50, 34))
-    disp.image(image)
-    disp.display()
+
+
+if __name__ == '__main__':
+    main()
