@@ -37,9 +37,9 @@ class Tomo:
     def __init__(self):
         # load sprites
         directory = os.path.dirname(__file__)
-        self.tomo_left = Image.open('%s/sprites/tomo.bmp' % directory).convert('1')
+        self.tomo_left = Image.open('%s/sprites/tomo/tomo.bmp' % directory).convert('1')
         self.tomo_right = self.tomo_left.transpose(Image.FLIP_LEFT_RIGHT)
-        self.tomo_left_sweat = Image.open('%s/sprites/tomo_sweat.bmp' % directory).convert('1')
+        self.tomo_left_sweat = Image.open('%s/sprites/tomo/tomo_sweat.bmp' % directory).convert('1')
         self.tomo_right_sweat = self.tomo_left_sweat.transpose(Image.FLIP_LEFT_RIGHT)
 
         # default sprite
@@ -80,9 +80,9 @@ class Egg:
     def __init__(self):
         # load sprites
         directory = os.path.dirname(__file__)
-        self.egg1 = Image.open('%s/sprites/egg1.bmp' % directory).convert('1')
-        self.egg2 = Image.open('%s/sprites/egg2.bmp' % directory).convert('1')
-        self.egg3 = Image.open('%s/sprites/egg3.bmp' % directory).convert('1')
+        self.egg1 = Image.open('%s/sprites/egg/egg1.bmp' % directory).convert('1')
+        self.egg2 = Image.open('%s/sprites/egg/egg2.bmp' % directory).convert('1')
+        self.egg3 = Image.open('%s/sprites/egg/egg3.bmp' % directory).convert('1')
 
         # default sprite
         self.egg_sprite = self.egg1
@@ -135,14 +135,14 @@ font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuS/DejaVuSans.t
 
 ## animate egg hatching
 egg = Egg()
-while egg.count <= 30:
+while egg.count <= 15:
     egg.idle()
     image.paste(egg.egg_sprite, (egg.x, egg.y))
     disp.image(image)
     disp.display()
     sleep(0.5)
 
-while egg.count <= 35:
+while egg.count <= 21:
     egg.hatch()
     image.paste(egg.egg_sprite, (egg.x, egg.y))
     disp.image(image)
