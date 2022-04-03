@@ -25,19 +25,20 @@ def getArguments():
     return args
 
 
-def checkSpotify(tomo):
-    command = '/usr/bin/ps -aux | /usr/bin/grep ncspot | /usr/bin/wc -l'
-    output = subprocess.check_output(command, shell=True)
-    output.decode()
-    if int(output) >= 3:
-        tomo.dancing = True
-    else:
-        tomo.dancing = False
-    return int(output)
-
-
 def render(object):
     draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
+    # cpu temp
+    if tomo.message:
+        draw.text((0, 7), tomo.message, font=font, fill=255)
+    else:
+        if args.temp:
+            draw.text((0, 7), tomo.temp, font=font, fill=255)
+        
+        # time
+        if args.time:
+            time = datetime.now().strftime('%H:%M')
+            draw.text((90, 7), time, font=font, fill=255)
+
     if food.spawned:
         image.paste(food.food_sprite, (food.x, food.y))
     image.paste(object.sprite, (object.x, object.y))
@@ -78,8 +79,10 @@ class Tomo:
         self.food_consumed = 0
         self.deaths = 0
         self.temp = ''
+        self.message = False
 
     def walk(self):
+        self.message = False
         self.checkSick()
 
         # hunger depleats faster when hot
@@ -109,7 +112,9 @@ class Tomo:
             if self.x < 98:
                 self.x = self.x + 2
         
-        if self.sick:
+        if self.hunger < 50:
+            self.sprite = self.tomo_excite
+        elif self.sick:
             self.sprite = self.tomo_sick
         elif self.dancing:
             self.sprite = self.tomo_dance
@@ -130,6 +135,8 @@ class Tomo:
 
     def eat(self):
         self.hunger = 200
+        self.food_consumed = self.food_consumed + 1
+        self.message = 'food eaten: %s' % (str(self.food_consumed))
         for count in range(0, 6):
             if count % 2 == 0:
                 self.sprite = self.tomo_excite
@@ -174,7 +181,7 @@ class Tomo:
         self.deaths = self.deaths + 1
         self.sprite = self.tomo_rip
 
-        (self.x, self.y) = (50, 34)
+        self.message = 'times died: %s' % str(self.deaths)
 
         render(self)
         sleep(10)
@@ -296,50 +303,27 @@ def main():
         egg.hatch()
 
     ## start loop
-    try:
-        while True:
-            draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
-            
-            tomo.checkTemp()
-            tomo.checkMusic()
-            tomo.checkSick()
-            # cpu temp
-            if args.temp:
-                draw.text((0, 7), tomo.temp, font=font, fill=255)
-        
-            # time
-            if args.time:
-                time = datetime.now().strftime('%H:%M')
-                draw.text((90, 7), time, font=font, fill=255)
-        
+    while True:
+        tomo.checkMusic()
+        tomo.checkSick()
+        tomo.checkTemp()
+
         # spawn food
-            if not food.spawned:
-                if random.randint(0, 20) == 0:
-                    food.spawn(tomo.x)
-        
-            # start walk
-            tomo.walk()
-            if food.spawned:
-                if tomo.x in range(food.x, food.x + 36) or tomo.x + 36 in range(food.x, food.x + 32):
-                    tomo.food_consumed = tomo.food_consumed + 1
-                    if tomo.x < food.x:
-                        tomo.direction = 'right'
-                    else:
-                        tomo.direction = 'left'
-        
-                    tomo.eat()
-                    food.eat()
-    except KeyboardInterrupt:
-        draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
-        draw.text((0, 7), 'tomo terminated :(', font=font, fill=255)
-        tomo.tomo_sprite = tomo.tomo_rip
-        image.paste(tomo.tomo_sprite, (50, 34))
-        disp.image(image)
-        disp.display()
-
-
-def test():
-    pass
+        if not food.spawned:
+            if random.randint(0, 20) == 0:
+                food.spawn(tomo.x)
+    
+        # start walk
+        tomo.walk()
+        if food.spawned:
+            if tomo.x in range(food.x, food.x + 36) or tomo.x + 36 in range(food.x, food.x + 32):
+                if tomo.x < food.x:
+                    tomo.direction = 'right'
+                else:
+                    tomo.direction = 'left'
+    
+                tomo.eat()
+                food.eat()
 
 
 if __name__ == '__main__':
