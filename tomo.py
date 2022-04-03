@@ -25,13 +25,29 @@ def getArguments():
     return args
 
 
-def cpuTemp():
+def cpuTemp(tomo):
     command = '/opt/vc/bin/vcgencmd measure_temp'
     temp = subprocess.check_output(command, shell=True)
     temp = temp.decode()
     temp = temp[:9]
     temp = temp[5:]
+    if float(temp) >= 50.0:
+        tomo.hot = True
+    else:
+        tomo.hot = False
+    temp = temp + ' C'
     return temp
+
+
+def checkSpotify(tomo):
+    command = '/usr/bin/ps -aux | /usr/bin/grep ncspot | /usr/bin/wc -l'
+    output = subprocess.check_output(command, shell=True)
+    output.decode()
+    if int(output) >= 3:
+        tomo.dancing = True
+    else:
+        tomo.dancing = False
+    return int(output)
 
 
 class Tomo:
@@ -46,6 +62,8 @@ class Tomo:
         self.tomo_excite_right = self.tomo_excite_left.transpose(Image.FLIP_LEFT_RIGHT)
         self.tomo_eat_left = Image.open('%s/sprites/tomo/tomo_eat.bmp' % directory).convert('1')
         self.tomo_eat_right = self.tomo_eat_left.transpose(Image.FLIP_LEFT_RIGHT)
+        self.tomo_dance_left = Image.open('%s/sprites/tomo/tomo_dance.bmp' % directory).convert('1')
+        self.tomo_dance_right = self.tomo_dance_left.transpose(Image.FLIP_LEFT_RIGHT)
 
         # default sprite
         self.tomo_sprite = self.tomo_left
@@ -56,7 +74,10 @@ class Tomo:
         # set direction
         self.direction = 'left'
 
+        # attributes
         self.food_consumed = 0
+        self.hot = False
+        self.dancing = False
 
     def walk(self, temp):
         dir = random.randint(0, 6)
@@ -66,7 +87,9 @@ class Tomo:
         # walk left if odd
         elif dir % 2 == 1:
             self.direction = 'left'
-            if float(temp) > 50.0:
+            if self.dancing:
+                self.tomo_sprite = self.tomo_dance_left
+            elif self.hot:
                 self.tomo_sprite = self.tomo_sweat_left
             else:
                 self.tomo_sprite = self.tomo_left
@@ -75,7 +98,9 @@ class Tomo:
         # walk right if even
         elif dir % 2 == 0:
             self.direction = 'right'
-            if float(temp) > 50.0:
+            if self.dancing:
+                self.tomo_sprite = self.tomo_dance_right
+            elif self.hot: 
                 self.tomo_sprite = self.tomo_sweat_right
             else:
                 self.tomo_sprite = self.tomo_right
@@ -224,7 +249,7 @@ while True:
     draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
    
     # cpu temp
-    temp = cpuTemp()
+    temp = cpuTemp(tomo)
     if args.temp:
         temp_string = temp + ' C'
         draw.text((0, 7), temp_string, font=font, fill=255)
@@ -234,9 +259,12 @@ while True:
         time = datetime.now().strftime('%H:%M')
         draw.text((90, 7), time, font=font, fill=255)
 
+    # spotify
+    checkSpotify(tomo)
+
 # spawn food
     if not food.spawned:
-        if random.randint(0, 10) == 0:
+        if random.randint(0, 20) == 0:
             food.spawn(tomo.x)
 
     # start walk
