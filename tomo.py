@@ -50,8 +50,13 @@ def checkSpotify(tomo):
     return int(output)
 
 
-def render(sprite):
-    pass
+def render(object):
+    draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
+    image.paste(object.sprite, (object.x, object.y))
+    disp.image(image)
+    disp.display()
+    sleep(0.5)
+
 
 
 class Tomo:
@@ -214,24 +219,18 @@ class Egg:
                 self.sprite = self.egg1
             else:
                 self.sprite = self.egg2
-            image.paste(self.sprite, (self.x, self.y))
-            disp.image(image)
-            disp.display()
-
+            
             self.count = self.count + 1
-            sleep(0.5)
+            render(self)
         
         while self.count <= 21:
             if self.count % 2 == 0:
                 self.sprite = self.egg1
             else:
                 self.sprite = self.egg3
-            image.paste(self.sprite, (self.x, self.y))
-            disp.image(image)
-            disp.display()
-
+            
             self.count = self.count + 1
-            sleep(0.5)
+            render(self)
 
 
 class Food:
@@ -303,20 +302,6 @@ def main():
     if not args.skip:
         egg = Egg()
         egg.hatch()
-        while egg.count <= 15:
-            egg.idle()
-            image.paste(egg.egg_sprite, (egg.x, egg.y))
-            disp.image(image)
-            disp.display()
-            sleep(0.5)
-        
-        while egg.count <= 21:
-            egg.hatch()
-            image.paste(egg.egg_sprite, (egg.x, egg.y))
-            disp.image(image)
-            disp.display()
-            sleep(0.5)
-   
 
     ## start loop
     try:
