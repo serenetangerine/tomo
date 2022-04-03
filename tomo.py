@@ -91,7 +91,7 @@ class Tomo:
         self.food_consumed = 0
         self.hot = False
         self.dancing = False
-        self.hunger = 200
+        self.hunger = 200 
         self.sick = False
         self.deaths = 0
 
@@ -103,6 +103,9 @@ class Tomo:
             self.hunger = self.hunger - 2
         else:
             self.hunger = self.hunger - 1
+
+        if self.hunger <= 0:
+            self.die()
 
         # more likely to not move if sick
         if self.sick:
@@ -146,6 +149,7 @@ class Tomo:
             self.y = 34
 
     def eat(self, count):
+        self.hunger = 200
         if count % 2 == 0:
             if self.direction == 'left':
                 self.tomo_sprite = self.tomo_excite_left
@@ -158,16 +162,24 @@ class Tomo:
                 self.tomo_sprite = self.tomo_eat_right
 
     def checkSick(self):
-        sick = random.randint(0, 31)
         if self.sick:
+            sick = random.randint(0,10)
             if sick == 0:
                 self.sick = False
         else:
+            sick = random.randint(0, 31)
             if sick == 0:
                 self.sick = True
      
     def die(self):
         self.tomo_sprite = self.tomo_rip
+        draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
+        draw.text((0, 7), 'tomo died :(', font=font, fill=255)
+        image.paste(self.tomo_sprite, (50, 34))
+        disp.image(image)
+        disp.display()
+        sleep(10)
+
         self.respawn()
 
     def respawn(self):
