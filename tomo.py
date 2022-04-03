@@ -251,8 +251,7 @@ while True:
     # cpu temp
     temp = cpuTemp(tomo)
     if args.temp:
-        temp_string = temp + ' C'
-        draw.text((0, 7), temp_string, font=font, fill=255)
+        draw.text((0, 7), temp, font=font, fill=255)
 
     # time
     if args.time:
