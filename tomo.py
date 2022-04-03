@@ -136,16 +136,29 @@ class Food:
         # load sprites
         directory = os.path.dirname(__file__)
         self.peach = Image.open('%s/sprites/food/peach.bmp' % directory).convert('1')
+        self.pizza = Image.open('%s/sprites/food/pizza.bmp' % directory).convert('1')
+        self.burger = Image.open('%s/sprites/food/burger.bmp' % directory).convert('1')
 
         # default sprite
         self.food_sprite = self.peach
 
         # initial coordinates
-        (self.x, self.y) = (50, 33)
+        (self.x, self.y) = (50, 31)
 
         self.spawned = False
     
     def spawn(self, x):
+        # choose food item
+        food = ['peach', 'pizza', 'burger']
+        choice = random.choice(food)
+        if choice == 'peach':
+            self.food_sprite = self.peach
+        elif choice == 'pizza':
+            self.food_sprite = self.pizza
+        elif choice == 'burger':
+            self.food_sprite = self.burger
+
+        # find available position
         pos = random.randint(0, 100)
         if pos not in range(x, x + 32) and pos + 32 not in range(x, x + 32):
             self.x = pos
@@ -227,7 +240,7 @@ while True:
     # start walk
     tomo.walk(temp)
     if food.spawned:
-        if tomo.x in range(food.x, food.x + 38) or tomo.x + 38 in range(food.x, food.x + 32):
+        if tomo.x in range(food.x, food.x + 36) or tomo.x + 36 in range(food.x, food.x + 32):
             if tomo.x < food.x:
                 tomo.direction = 'right'
             else:
