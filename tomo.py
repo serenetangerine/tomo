@@ -54,16 +54,27 @@ class Tomo:
     def __init__(self):
         # load sprites
         directory = os.path.dirname(__file__)
+
         self.tomo_left = Image.open('%s/sprites/tomo/tomo.bmp' % directory).convert('1')
         self.tomo_right = self.tomo_left.transpose(Image.FLIP_LEFT_RIGHT)
+
         self.tomo_sweat_left = Image.open('%s/sprites/tomo/tomo_sweat.bmp' % directory).convert('1')
         self.tomo_sweat_right = self.tomo_sweat_left.transpose(Image.FLIP_LEFT_RIGHT)
+
         self.tomo_excite_left = Image.open('%s/sprites/tomo/tomo_excite.bmp' % directory).convert('1')
         self.tomo_excite_right = self.tomo_excite_left.transpose(Image.FLIP_LEFT_RIGHT)
+
         self.tomo_eat_left = Image.open('%s/sprites/tomo/tomo_eat.bmp' % directory).convert('1')
         self.tomo_eat_right = self.tomo_eat_left.transpose(Image.FLIP_LEFT_RIGHT)
+
         self.tomo_dance_left = Image.open('%s/sprites/tomo/tomo_dance.bmp' % directory).convert('1')
         self.tomo_dance_right = self.tomo_dance_left.transpose(Image.FLIP_LEFT_RIGHT)
+
+        self.tomo_sick_left = Image.open('%s/sprites/tomo/tomo_sick.bmp' % directory).convert('1')
+        self.tomo_sick_right = self.tomo_sick_left.transpose(Image.FLIP_LEFT_RIGHT)
+
+        self.tomo_love_left = Image.open('%s/sprites/tomo/tomo_love.bmp' % directory).convert('1')
+        self.tomo_love_right = self.tomo_love_left.transpose(Image.FLIP_LEFT_RIGHT)
 
         self.tomo_rip = Image.open('%s/sprites/tomo/tomo_rip.bmp' % directory).convert('1')
 
@@ -80,16 +91,34 @@ class Tomo:
         self.food_consumed = 0
         self.hot = False
         self.dancing = False
+        self.hunger = 200
+        self.sick = False
+        self.deaths = 0
 
     def walk(self, temp):
-        dir = random.randint(0, 6)
+        self.checkSick()
+
+        # hunger depleats faster when hot
+        if self.hot:
+            self.hunger = self.hunger - 2
+        else:
+            self.hunger = self.hunger - 1
+
+        # more likely to not move if sick
+        if self.sick:
+            dir = random.randint(0,2)
+        else:
+            dir = random.randint(0, 6)
+        
         # do nothing if 0
         if dir == 0:
             pass
         # walk left if odd
         elif dir % 2 == 1:
             self.direction = 'left'
-            if self.dancing:
+            if self.sick:
+                self.tomo_sprite = self.tomo_sick_left
+            elif self.dancing:
                 self.tomo_sprite = self.tomo_dance_left
             elif self.hot:
                 self.tomo_sprite = self.tomo_sweat_left
@@ -100,7 +129,9 @@ class Tomo:
         # walk right if even
         elif dir % 2 == 0:
             self.direction = 'right'
-            if self.dancing:
+            if self.sick:
+                self.tomo_sprite = self.tomo_sick_right
+            elif self.dancing:
                 self.tomo_sprite = self.tomo_dance_right
             elif self.hot: 
                 self.tomo_sprite = self.tomo_sweat_right
@@ -125,9 +156,22 @@ class Tomo:
                 self.tomo_sprite = self.tomo_eat_left
             else:
                 self.tomo_sprite = self.tomo_eat_right
+
+    def checkSick(self):
+        sick = random.randint(0, 31)
+        if self.sick:
+            if sick == 0:
+                self.sick = False
+        else:
+            if sick == 0:
+                self.sick = True
      
     def die(self):
         self.tomo_sprite = self.tomo_rip
+        self.respawn()
+
+    def respawn(self):
+        main()
 
 class Egg:
     def __init__(self):
@@ -301,12 +345,16 @@ def main():
             disp.display()
             sleep(0.5)
     except KeyboardInterrupt:
-        tomo.die()
         draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
         draw.text((0, 7), 'tomo terminated :(', font=font, fill=255)
+        tomo.tomo_sprite = tomo.tomo_rip
         image.paste(tomo.tomo_sprite, (50, 34))
         disp.image(image)
         disp.display()
+
+
+def test():
+    pass
 
 
 if __name__ == '__main__':
