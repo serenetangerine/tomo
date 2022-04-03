@@ -44,6 +44,8 @@ class Tomo:
         self.tomo_sweat_right = self.tomo_sweat_left.transpose(Image.FLIP_LEFT_RIGHT)
         self.tomo_excite_left = Image.open('%s/sprites/tomo/tomo_excite.bmp' % directory).convert('1')
         self.tomo_excite_right = self.tomo_excite_left.transpose(Image.FLIP_LEFT_RIGHT)
+        self.tomo_eat_left = Image.open('%s/sprites/tomo/tomo_eat.bmp' % directory).convert('1')
+        self.tomo_eat_right = self.tomo_eat_left.transpose(Image.FLIP_LEFT_RIGHT)
 
         # default sprite
         self.tomo_sprite = self.tomo_left
@@ -91,9 +93,9 @@ class Tomo:
                 self.tomo_sprite = self.tomo_excite_right
         else:
             if self.direction == 'left':
-                self.tomo_sprite = self.tomo_left
+                self.tomo_sprite = self.tomo_eat_left
             else:
-                self.tomo_sprite = self.tomo_right
+                self.tomo_sprite = self.tomo_eat_right
 
 
 class Egg:
