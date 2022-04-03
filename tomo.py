@@ -204,7 +204,7 @@ class Tomo:
         self.respawn()
 
     def respawn(self):
-        self.hunger = 200
+        self.hunger = 100
         self.food_consumed = 0
         main()
 
@@ -274,7 +274,7 @@ class Food:
 
         # find available position
         pos = random.randint(0, 100)
-        if pos not in range(x, x + 32) and pos + 32 not in range(x, x + 32):
+        if pos not in range(tomo.x, tomo.x + 32) and pos + 32 not in range(tomo.x, tomo.x + 32):
             self.x = pos
             self.spawned = True
         else:
@@ -322,7 +322,7 @@ def main():
 
         # spawn food
         if not food.spawned:
-            if random.randint(0, 50) == 0:
+            if random.randint(0, 100) == 0:
                 food.spawn(tomo.x)
     
         # start walk
