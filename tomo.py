@@ -64,31 +64,17 @@ class Tomo:
         # load sprites
         directory = os.path.dirname(__file__)
 
-        self.tomo_left = Image.open('%s/sprites/tomo/tomo.bmp' % directory).convert('1')
-        self.tomo_right = self.tomo_left.transpose(Image.FLIP_LEFT_RIGHT)
-
-        self.tomo_sweat_left = Image.open('%s/sprites/tomo/tomo_sweat.bmp' % directory).convert('1')
-        self.tomo_sweat_right = self.tomo_sweat_left.transpose(Image.FLIP_LEFT_RIGHT)
-
-        self.tomo_excite_left = Image.open('%s/sprites/tomo/tomo_excite.bmp' % directory).convert('1')
-        self.tomo_excite_right = self.tomo_excite_left.transpose(Image.FLIP_LEFT_RIGHT)
-
-        self.tomo_eat_left = Image.open('%s/sprites/tomo/tomo_eat.bmp' % directory).convert('1')
-        self.tomo_eat_right = self.tomo_eat_left.transpose(Image.FLIP_LEFT_RIGHT)
-
-        self.tomo_dance_left = Image.open('%s/sprites/tomo/tomo_dance.bmp' % directory).convert('1')
-        self.tomo_dance_right = self.tomo_dance_left.transpose(Image.FLIP_LEFT_RIGHT)
-
-        self.tomo_sick_left = Image.open('%s/sprites/tomo/tomo_sick.bmp' % directory).convert('1')
-        self.tomo_sick_right = self.tomo_sick_left.transpose(Image.FLIP_LEFT_RIGHT)
-
-        self.tomo_love_left = Image.open('%s/sprites/tomo/tomo_love.bmp' % directory).convert('1')
-        self.tomo_love_right = self.tomo_love_left.transpose(Image.FLIP_LEFT_RIGHT)
-
+        self.tomo = Image.open('%s/sprites/tomo/tomo.bmp' % directory).convert('1')
+        self.tomo_sweat = Image.open('%s/sprites/tomo/tomo_sweat.bmp' % directory).convert('1')
+        self.tomo_excite = Image.open('%s/sprites/tomo/tomo_excite.bmp' % directory).convert('1')
+        self.tomo_eat = Image.open('%s/sprites/tomo/tomo_eat.bmp' % directory).convert('1')
+        self.tomo_dance = Image.open('%s/sprites/tomo/tomo_dance.bmp' % directory).convert('1')
+        self.tomo_sick = Image.open('%s/sprites/tomo/tomo_sick.bmp' % directory).convert('1')
+        self.tomo_love = Image.open('%s/sprites/tomo/tomo_love.bmp' % directory).convert('1')
         self.tomo_rip = Image.open('%s/sprites/tomo/tomo_rip.bmp' % directory).convert('1')
 
         # default sprite
-        self.tomo_sprite = self.tomo_left
+        self.sprite = self.tomo
 
         # initial coordinates
         (self.x, self.y) = (50, 34)
@@ -125,50 +111,45 @@ class Tomo:
         # do nothing if 0
         if dir == 0:
             pass
-        # walk left if odd
-        elif dir % 2 == 1:
+        elif dir % 2 == 0:
             self.direction = 'left'
-            if self.sick:
-                self.tomo_sprite = self.tomo_sick_left
-            elif self.dancing:
-                self.tomo_sprite = self.tomo_dance_left
-            elif self.hot:
-                self.tomo_sprite = self.tomo_sweat_left
-            else:
-                self.tomo_sprite = self.tomo_left
             if self.x > 0:
                 self.x = self.x - 2
-        # walk right if even
-        elif dir % 2 == 0:
+        else:
             self.direction = 'right'
-            if self.sick:
-                self.tomo_sprite = self.tomo_sick_right
-            elif self.dancing:
-                self.tomo_sprite = self.tomo_dance_right
-            elif self.hot: 
-                self.tomo_sprite = self.tomo_sweat_right
-            else:
-                self.tomo_sprite = self.tomo_right
-            if self.x < 100:
+            if self.x < 98:
                 self.x = self.x + 2
         
+        if self.sick:
+            self.sprite = self.tomo_sick
+        elif self.dancing:
+            self.sprite = self.tomo_dance
+        elif self.hot:
+            self.sprite = self.tomo_sweat
+        else:
+            self.sprite = self.tomo
+
+        if self.direction == 'right':
+            tomo.sprite = tomo.sprite.transpose(Image.FLIP_LEFT_RIGHT)
+
         if self.x % 3 == 0:
             self.y = 32
         else:
             self.y = 34
 
+        render(self)
+
     def eat(self, count):
         self.hunger = 200
-        if count % 2 == 0:
-            if self.direction == 'left':
-                self.tomo_sprite = self.tomo_excite_left
+        for count in range(0, 6):
+            if count % 2 == 0:
+                self.sprite = self.tomo_excite
             else:
-                self.tomo_sprite = self.tomo_excite_right
-        else:
-            if self.direction == 'left':
-                self.tomo_sprite = self.tomo_eat_left
-            else:
-                self.tomo_sprite = self.tomo_eat_right
+                self.sprite = self.tomo_eat
+            if self.direction == 'right':
+                self.sprite = self.sprite.transpose(Image.FLIP_LEFT_RIGHT)
+            render(self)
+
 
     def checkSick(self):
         if self.sick:
@@ -182,20 +163,22 @@ class Tomo:
      
     def die(self):
         self.deaths = self.deaths + 1
-        self.tomo_sprite = self.tomo_rip
+        self.sprite = self.tomo_rip
 
-        draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
-        draw.text((0, 7), 'tomo died :(', font=font, fill=255)
+        (self.x, self.y) = (50, 34)
 
-        image.paste(self.tomo_sprite, (50, 34))
-        disp.image(image)
-        disp.display()
+        render(self)
+        sleep(10)
+        self.respawn()
+
         sleep(10)
 
         self.respawn()
 
     def respawn(self):
+        self.hunger = 200
         main()
+
 
 class Egg:
     def __init__(self):
@@ -351,10 +334,6 @@ def main():
         
             if food.spawned:
                 image.paste(food.food_sprite, (food.x, food.y))
-            image.paste(tomo.tomo_sprite, (tomo.x, tomo.y))
-            disp.image(image)
-            disp.display()
-            sleep(0.5)
     except KeyboardInterrupt:
         draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
         draw.text((0, 7), 'tomo terminated :(', font=font, fill=255)
