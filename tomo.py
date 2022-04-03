@@ -25,20 +25,6 @@ def getArguments():
     return args
 
 
-def cpuTemp(tomo):
-    command = '/opt/vc/bin/vcgencmd measure_temp'
-    temp = subprocess.check_output(command, shell=True)
-    temp = temp.decode()
-    temp = temp[:9]
-    temp = temp[5:]
-    if float(temp) >= 50.0:
-        tomo.hot = True
-    else:
-        tomo.hot = False
-    temp = temp + ' C'
-    return temp
-
-
 def checkSpotify(tomo):
     command = '/usr/bin/ps -aux | /usr/bin/grep ncspot | /usr/bin/wc -l'
     output = subprocess.check_output(command, shell=True)
@@ -52,6 +38,8 @@ def checkSpotify(tomo):
 
 def render(object):
     draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
+    if food.spawned:
+        image.paste(food.food_sprite, (food.x, food.y))
     image.paste(object.sprite, (object.x, object.y))
     disp.image(image)
     disp.display()
@@ -83,14 +71,15 @@ class Tomo:
         self.direction = 'left'
 
         # attributes
-        self.food_consumed = 0
         self.hot = False
         self.dancing = False
-        self.hunger = 200 
         self.sick = False
+        self.hunger = 200
+        self.food_consumed = 0
         self.deaths = 0
+        self.temp = ''
 
-    def walk(self, temp):
+    def walk(self):
         self.checkSick()
 
         # hunger depleats faster when hot
@@ -139,7 +128,7 @@ class Tomo:
 
         render(self)
 
-    def eat(self, count):
+    def eat(self):
         self.hunger = 200
         for count in range(0, 6):
             if count % 2 == 0:
@@ -150,7 +139,6 @@ class Tomo:
                 self.sprite = self.sprite.transpose(Image.FLIP_LEFT_RIGHT)
             render(self)
 
-
     def checkSick(self):
         if self.sick:
             sick = random.randint(0,10)
@@ -160,6 +148,27 @@ class Tomo:
             sick = random.randint(0, 31)
             if sick == 0:
                 self.sick = True
+
+    def checkTemp(self):
+        command = '/opt/vc/bin/vcgencmd measure_temp'
+        temp = subprocess.check_output(command, shell=True)
+        temp = temp.decode()
+        temp = temp[:9]
+        temp = temp[5:]
+        if float(temp) >= 50.0:
+            self.hot = True
+        else:
+            self.hot = False
+        self.temp = temp + ' C'
+
+    def checkMusic(self):
+        command = '/usr/bin/ps -aux | /usr/bin/grep ncspot | /usr/bin/wc -l'
+        output = subprocess.check_output(command, shell=True)
+        output.decode()
+        if int(output) >= 3:
+            self.dancing = True
+        else:
+            self.dancing = False
      
     def die(self):
         self.deaths = self.deaths + 1
@@ -290,19 +299,18 @@ def main():
     try:
         while True:
             draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
-           
+            
+            tomo.checkTemp()
+            tomo.checkMusic()
+            tomo.checkSick()
             # cpu temp
-            temp = cpuTemp(tomo)
             if args.temp:
-                draw.text((0, 7), temp, font=font, fill=255)
+                draw.text((0, 7), tomo.temp, font=font, fill=255)
         
             # time
             if args.time:
                 time = datetime.now().strftime('%H:%M')
                 draw.text((90, 7), time, font=font, fill=255)
-        
-            # spotify
-            checkSpotify(tomo)
         
         # spawn food
             if not food.spawned:
@@ -310,7 +318,7 @@ def main():
                     food.spawn(tomo.x)
         
             # start walk
-            tomo.walk(temp)
+            tomo.walk()
             if food.spawned:
                 if tomo.x in range(food.x, food.x + 36) or tomo.x + 36 in range(food.x, food.x + 32):
                     tomo.food_consumed = tomo.food_consumed + 1
@@ -319,21 +327,8 @@ def main():
                     else:
                         tomo.direction = 'left'
         
-                    for count in range(0, 6):
-                        draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
-                        draw.text((0, 7), 'food eaten: %s' % str(tomo.food_consumed), font=font, fill=255)
-                        tomo.eat(count)
-        
-                        image.paste(food.food_sprite, (food.x, food.y))
-                        image.paste(tomo.tomo_sprite, (tomo.x, tomo.y))
-                        disp.image(image)
-                        disp.display()
-                        sleep(0.5)
+                    tomo.eat()
                     food.eat()
-        
-        
-            if food.spawned:
-                image.paste(food.food_sprite, (food.x, food.y))
     except KeyboardInterrupt:
         draw.rectangle((0,0, disp.width, disp.height), outline=0, fill=0)
         draw.text((0, 7), 'tomo terminated :(', font=font, fill=255)
