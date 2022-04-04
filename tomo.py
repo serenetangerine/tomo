@@ -322,7 +322,7 @@ def main():
 
         # spawn food
         if not food.spawned:
-            if random.randint(0, 75) == 0:
+            if random.randint(0, 50) == 0:
                 food.spawn(tomo.x)
     
         # start walk
