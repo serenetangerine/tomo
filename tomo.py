@@ -61,6 +61,7 @@ class Tomo:
         self.tomo_sick = Image.open('%s/sprites/tomo/tomo_sick.bmp' % directory).convert('1')
         self.tomo_love = Image.open('%s/sprites/tomo/tomo_love.bmp' % directory).convert('1')
         self.tomo_rip = Image.open('%s/sprites/tomo/tomo_rip.bmp' % directory).convert('1')
+        self.tomo_trip = Image.open('%s/sprites/tomo/tomo_trip.bmp' % directory).convert('1')
 
         # default sprite
         self.sprite = self.tomo
@@ -75,6 +76,7 @@ class Tomo:
         self.hot = False
         self.dancing = False
         self.sick = False
+        self.trip = False
         self.hunger = 100
         self.food_consumed = 0
         self.deaths = 0
@@ -84,6 +86,9 @@ class Tomo:
     def walk(self):
         self.message = False
         self.checkSick()
+        if self.trip:
+            if random.randint(0,200) == 0:
+                self.trip = False
 
         # hunger depleats faster when hot
         if self.hot:
@@ -123,7 +128,11 @@ class Tomo:
             if self.x < 98:
                 self.x = self.x + 2
         
-        if self.hunger < 20:
+        if self.trip:
+            self.sprite = self.tomo_trip
+            if random.randint(0, 100) == 0:
+                self.trip = False
+        elif self.hunger < 20:
             self.sprite = self.tomo_excite
         elif self.sick:
             self.sprite = self.tomo_sick
@@ -145,6 +154,8 @@ class Tomo:
         render(self)
 
     def eat(self):
+        if food.mushroom:
+            self.trip = True
         self.hunger = 200
         self.food_consumed = self.food_consumed + 1
         self.message = 'food eaten: %s' % (str(self.food_consumed))
@@ -261,9 +272,11 @@ class Food:
         (self.x, self.y) = (50, 31)
 
         self.spawned = False
+        self.mushroom = False
     
     def spawn(self, x):
         # choose food item
+        self.mushroom = False
         food = ['peach', 'pizza', 'burger', 'mush']
         choice = random.choice(food)
         if choice == 'peach':
@@ -274,6 +287,7 @@ class Food:
             self.sprite = self.burger
         elif choice == 'mush':
             self.sprite = self.mush
+            self.mushroom = True
 
         # find available position
         pos = random.randint(0, 100)
