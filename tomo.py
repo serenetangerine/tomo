@@ -96,7 +96,7 @@ class Tomo:
 
         # more likely to not move if sick
         # bee lines to food when starving
-        if self.hunger > 10:
+        if self.hunger > 20:
             if self.sick:
                 dir = random.randint(0, 2)
             else:
