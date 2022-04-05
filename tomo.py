@@ -40,7 +40,7 @@ def render(object):
             draw.text((90, 7), time, font=font, fill=255)
 
     if food.spawned:
-        image.paste(food.food_sprite, (food.x, food.y))
+        image.paste(food.sprite, (food.x, food.y))
     image.paste(object.sprite, (object.x, object.y))
     disp.image(image)
     disp.display()
@@ -252,9 +252,10 @@ class Food:
         self.peach = Image.open('%s/sprites/food/peach.bmp' % directory).convert('1')
         self.pizza = Image.open('%s/sprites/food/pizza.bmp' % directory).convert('1')
         self.burger = Image.open('%s/sprites/food/burger.bmp' % directory).convert('1')
+        self.mush = Image.open('%s/sprites/food/mush.bmp' % directory).convert('1')
 
         # default sprite
-        self.food_sprite = self.peach
+        self.sprite = self.peach
 
         # initial coordinates
         (self.x, self.y) = (50, 31)
@@ -263,14 +264,16 @@ class Food:
     
     def spawn(self, x):
         # choose food item
-        food = ['peach', 'pizza', 'burger']
+        food = ['peach', 'pizza', 'burger', 'mush']
         choice = random.choice(food)
         if choice == 'peach':
-            self.food_sprite = self.peach
+            self.sprite = self.peach
         elif choice == 'pizza':
-            self.food_sprite = self.pizza
+            self.sprite = self.pizza
         elif choice == 'burger':
-            self.food_sprite = self.burger
+            self.sprite = self.burger
+        elif choice == 'mush':
+            self.sprite = self.mush
 
         # find available position
         pos = random.randint(0, 100)
